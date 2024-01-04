@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{245be3d9-2e3c-4a56-ab1d-124f45dc2728}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	n_cnt_1 : UINT;
+	n_cnt_2 : UINT;
+	n_cnt_3 : UINT;
+	
+	ton_1 : TON := (PT := T#0.2S);
+	ton_2 : TON := (PT := T#0.5S);
+	ton_3 : TON := (PT := T#1S);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[ton_1(IN := NOT ton_1.Q);
+ton_2(IN := NOT ton_2.Q);
+ton_3(IN := NOT ton_3.Q);
+
+IF ton_1.Q THEN
+	n_cnt_1 := n_cnt_1 + 1;
+END_IF
+
+IF ton_2.Q THEN
+	n_cnt_2 := n_cnt_2 + 1;
+END_IF
+
+IF ton_3.Q THEN
+	n_cnt_3 := n_cnt_3 + 1;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="2" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="20" Count="2" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="24" Count="2" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
