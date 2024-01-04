@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <iomanip>
 #include <map>
 #include "TcAdsDef.h"
 #include "TcAdsAPI.h"
@@ -25,7 +26,7 @@ int main()
 	AdsNotificationAttrib	adsNotificationAttrib;
 
 
-	char s_hndl_1[] = { "MAIN.n_cnt_2" };
+	char s_hndl_1[] = { "MAIN.n_cnt_1" };
 	char s_hndl_2[] = { "MAIN.n_cnt_2" };
 	char s_hndl_3[] = { "MAIN.n_cnt_3" };
 
@@ -44,7 +45,7 @@ int main()
 	//Addr.netId = {5, 80, 201, 232, 1, 1};
 	Addr.port = 851;
 
-	adsNotificationAttrib.cbLength = sizeof(uint32_t);
+	adsNotificationAttrib.cbLength = 2; // UINT
 	adsNotificationAttrib.nTransMode = ADSTRANS_SERVERONCHA;
 	adsNotificationAttrib.nCycleTime = 0;
 	adsNotificationAttrib.nMaxDelay = 500;
@@ -117,8 +118,32 @@ int main()
 // callback-function
 void __stdcall SymbolChanged(AmsAddr* pAddr, AdsNotificationHeader* pNotification, ULONG hUser)
 {
+	SYSTEMTIME              SystemTime, LocalTime;
+	FILETIME                FileTime;
+	LARGE_INTEGER           LargeInteger;
+	TIME_ZONE_INFORMATION   TimeZoneInformation;
+
+	// Convert the timestamp into SYSTEMTIME
+	LargeInteger.QuadPart = pNotification->nTimeStamp;
+	FileTime.dwLowDateTime = (DWORD)LargeInteger.LowPart;
+	FileTime.dwHighDateTime = (DWORD)LargeInteger.HighPart;
+	FileTimeToSystemTime(&FileTime, &SystemTime);
+
+	// Convert the time value to local time
+	GetTimeZoneInformation(&TimeZoneInformation);
+	SystemTimeToTzSpecificLocalTime(&TimeZoneInformation, &SystemTime, &LocalTime);
+
+	// store plc variables value into local memory
 	unsigned short* tmp = (unsigned short*)pointerMap[(unsigned long)hUser]; // get address of global variables
 	*tmp = *(unsigned short*)pNotification->data; // write data to global variables
 
-	cout << __func__ << "() - " << "plc_n_cnt_1: " << plc_n_cnt_1 << "   plc_n_cnt_2: " << plc_n_cnt_2 << "   plc_n_cnt_3: " << plc_n_cnt_3 << endl;
+	// print out the timestamp and values
+	cout << setfill('0') << setw(2) << LocalTime.wHour <<
+		":" << setfill('0') << setw(2) << LocalTime.wMinute <<
+		":" << setfill('0') << setw(2) << LocalTime.wSecond <<
+		'.' << setfill('0') << setw(3) << LocalTime.wMilliseconds <<
+		" - " << LocalTime.wDay << '.' << LocalTime.wMonth << '.' << LocalTime.wYear << "  -  " <<
+		"   plc_n_cnt_1: " << setfill('0') << setw(4) <<  plc_n_cnt_1 <<
+		"   plc_n_cnt_2: " << setfill('0') << setw(4) <<  plc_n_cnt_2 <<
+		"   plc_n_cnt_3: " << setfill('0') << setw(4) <<  plc_n_cnt_3 << endl;
 }
